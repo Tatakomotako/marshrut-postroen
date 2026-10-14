@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#210b16">
+  <meta name="description" content="Маршрут построен — онлайн-оракул. 72 карты, немного магии и юмор с перчинкой.">
+  <meta property="og:title" content="Маршрут построен — для тех, кому мало">
+  <meta property="og:description" content="72 метафорические карты: открой послание и спроси себя о главном.">
+  <title>Маршрут построен · Для тех, кому мало</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./style.css?v=1">
+  <script src="./app.js?v=1" defer></script>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="topbar">
+    <a href="#home" class="logo"><span class="logo-star">✦</span><span>МАРШРУТ<br>ПОСТРОЕН</span></a>
+    <button class="saved-link" id="showSaved" type="button" aria-label="Открыть сохранённые карты">♡ <span>Мои карты</span> <b id="savedCount">0</b></button>
+  </header>
+  <main id="home">
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <p class="eyebrow"><span>✦</span> ПРОДОЛЖЕНИЕ МАГИИ <span>✦</span></p>
+        <h1 id="heroTitle">Маршрут<br><em>построен</em></h1>
+        <p class="hero-kicker">ДЛЯ ТЕХ, КОМУ МАЛО...</p>
+        <p class="hero-lead">Когда шестнадцати карт оказалось недостаточно, пришлось открыть ещё пятьдесят шесть. И кто-то опять должен был меня остановить.</p>
+        <div class="cover-visual" aria-hidden="true">
+          <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="orbit orbit-c"></div>
+          <div class="big-compass">✧</div><div class="airplane">✈</div>
+          <div class="route-dot dot-one">✧</div><div class="route-dot dot-two">✧</div>
+          <div class="cover-heading">МАРШРУТ<br>ПОСТРОЕН<small>мини-колода для больших перемен</small></div>
+        </div>
+        <p class="hero-footer">72 карты · 4 расклада · бесконечно много новых маршрутов</p>
+        <a href="#choose" class="primary-cta">Открыть свой маршрут <span>↗</span></a>
+      </div>
+    </section>
+    <section class="choose content" id="choose" aria-labelledby="chooseTitle">
+      <div class="section-number">01 / ТВОЯ ОСТАНОВКА</div>
+      <h2 id="chooseTitle">Что подскажет<br><em>вселенная сегодня?</em></h2>
+      <p class="section-lead">Не нужно ничего знать о картах. Достаточно остановиться, выбрать вопрос и довериться первой мысли.</p>
+      <h3 class="field-title">Выбери формат</h3>
+      <div class="mode-grid" id="modeGrid" role="group" aria-label="Формат расклада">
+        <button type="button" class="mode selected" data-mode="one" aria-pressed="true"><span class="mode-icon">✧</span><strong>Одно послание</strong><small>То, что важно услышать</small></button>
+        <button type="button" class="mode" data-mode="day" aria-pressed="false"><span class="mode-icon">☼</span><strong>Карта дня</strong><small>Один знак на сегодня</small></button>
+        <button type="button" class="mode" data-mode="three" aria-pressed="false"><span class="mode-icon">✦ ✦ ✦</span><strong>Три остановки</strong><small>Отпустить · Принять · Двигаться</small></button>
+        <button type="button" class="mode" data-mode="five" aria-pressed="false"><span class="mode-icon">✈</span><strong>Рейс в 2027</strong><small>Пять карт для новой главы</small></button>
+      </div>
+      <h3 class="field-title">О чём спросим карты?</h3>
+      <div class="topics" id="topics" role="group" aria-label="Тема расклада"></div>
+      <div class="draw-panel">
+        <span class="draw-accent">✦</span>
+        <p id="drawHint">Сделай вдох. Ответ не обязан быть удобным, но может оказаться очень кстати.</p>
+        <button type="button" class="draw-button" id="drawButton">Вытянуть карту <span>↗</span></button>
+        <span class="draw-footnote">Это метафорические послания, а не предсказания будущего.</span>
+      </div>
+    </section>
+    <section class="reading content" id="reading" aria-live="polite">
+      <div class="section-number">02 / ПОСЛАНИЕ ДЛЯ ТЕБЯ</div>
+      <h2 id="readingTitle">Карты уже<br><em>ждут встречи</em></h2>
+      <p class="section-lead" id="readingDescription">Выбери формат и открой первый знак.</p>
+      <div class="empty-reading" id="emptyReading"><div class="mini-back" aria-hidden="true"><div class="mini-compass">✧</div><b>МАРШРУТ<br>ПОСТРОЕН</b><small>✦ ✦ ✦</small></div><p>«Иногда путь меняется после одного вопроса»</p></div>
+      <div id="readingCards" class="reading-cards"></div>
+      <div class="reading-actions" id="readingActions" hidden>
+        <button type="button" class="action-quiet" id="shareReading">↗ Поделиться раскладом</button>
+        <button type="button" class="action-primary" id="againButton">Ещё один маршрут ✧</button>
+      </div>
+    </section>
+    <section class="afterword content">
+      <div class="section-number">03 / НАПОСЛЕДОК</div>
+      <span class="after-star">✧</span>
+      <h2>Карты не решают<br>за тебя. <em>И это прекрасно.</em></h2>
+      <p>Иногда одно случайное послание помогает заметить то, что мы давно знали. Выбирай свой маршрут, разрешай себе менять планы — и пусть дальше будет красиво.</p>
+      <p class="signature">С любовью, Таня ♡</p>
+    </section>
+  </main>
+  <footer class="footer"><span>✦ МАРШРУТ ПОСТРОЕН</span><span>Здесь можно быть собой</span></footer>
+  <div class="modal-cover" id="savedModal" hidden role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="savedTitle">
+      <div class="modal-top"><h2 id="savedTitle">Твои сохранённые карты ♡</h2><button type="button" id="closeSaved" class="close-modal" aria-label="Закрыть">×</button></div>
+      <p class="modal-intro">Самое ценное лучше брать с собой.</p><div id="savedList" class="saved-list"></div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
