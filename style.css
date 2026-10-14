@@ -6,3 +6,99 @@
 @media(max-width:850px){.hero-inner{grid-template-columns:1fr 300px;column-gap:25px;padding:120px 24px 80px}.cover-visual{width:280px;height:440px}.hero h1{font-size:clamp(73px,9vw,100px)}.cover-heading{font-size:35px}.big-compass{width:150px;height:150px;font-size:120px;line-height:140px}.mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.content{padding:85px 24px}}
 @media(max-width:650px){.topbar{height:67px;padding:14px 19px}.logo{font-size:17px}.saved-link{font-size:21px;padding:8px 11px}.saved-link span{display:none}.hero{min-height:0}.hero-inner{display:flex;flex-direction:column;align-items:center;text-align:center;padding:114px 19px 69px;min-height:0}.eyebrow{font-size:9px;letter-spacing:2.1px;margin-bottom:24px}.hero h1{font-size:clamp(72px,19vw,99px);letter-spacing:-2px}.hero-kicker{font-size:11px;letter-spacing:3.5px;margin:23px 0 13px}.hero-lead{font-size:12px;line-height:1.9;max-width:370px}.cover-visual{order:5;margin:28px 0 37px;width:230px;height:355px;transform:rotate(5deg)}.cover-heading{bottom:37px;font-size:31px}.cover-heading small{font-size:8px;margin-top:15px}.big-compass{top:39%;width:135px;height:135px;font-size:120px;line-height:130px}.orbit-a{width:180px;height:180px}.orbit-b{width:240px;height:145px}.orbit-c{width:145px;height:240px}.airplane{font-size:24px;right:20px;top:58px}.hero-footer{order:6;font-size:10px;margin:4px 0 25px}.primary-cta{order:7;align-self:stretch;justify-content:space-between;padding:17px 24px}.content{padding:70px 18px}.content h2{font-size:clamp(54px,14vw,74px)}.section-lead{font-size:12px;line-height:1.8;margin-bottom:28px}.mode-grid{gap:8px}.mode{min-height:145px;padding:15px 12px}.mode-icon{height:42px;font-size:26px}.mode strong{font-size:22px}.mode small{font-size:9px}.field-title{font-size:27px}.topic{font-size:11px;padding:10px 13px}.draw-panel{padding:34px 13px}.reading{padding-top:22px}.reading-cards{grid-template-columns:minmax(0,390px);justify-content:center;gap:33px}.oracle-card{max-width:350px;margin:auto}.card-title{font-size:34px}.card-message{font-size:27px}.card-question{font-size:21px}.footer{flex-direction:column;align-items:center;text-align:center;gap:9px}.afterword{padding-bottom:70px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+/* v2: elastic oracle cards. Content defines height; no absolute text positioning.
+   Long Russian words may wrap and never cross the ornamental frame. */
+.reading-cards{align-items:start}
+.drawn{min-width:0;width:100%;max-width:100%}
+.oracle-card{
+  aspect-ratio:auto;
+  min-height:530px;
+  height:auto;
+  max-width:100%;
+  padding:12px;
+  overflow:hidden;
+  display:block;
+  position:relative;
+}
+.oracle-card.flipped{min-height:0}
+.oracle-card::before{inset:7px}
+.oracle-card .front-face{
+  position:relative;
+  inset:auto;
+  width:100%;
+  min-height:540px;
+  height:auto;
+  padding:10px 7px 9px;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  overflow:visible;
+}
+.oracle-card.flipped .front-face{display:flex}
+.oracle-card .back-face{inset:12px;max-width:calc(100% - 24px)}
+.card-title{
+  flex:0 0 auto;
+  min-height:0;
+  margin:14px 8px 13px;
+  max-width:calc(100% - 16px);
+  font-size:clamp(24px,2.9vw,37px);
+  line-height:1.02;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  hyphens:auto;
+  text-wrap:balance;
+}
+.card-scene{
+  flex:0 0 auto;
+  height:145px;
+  min-height:145px;
+  width:auto;
+  margin:3px 7px 8px;
+}
+.card-illustration{font-size:clamp(68px,7vw,95px)}
+.card-message{
+  flex:0 0 auto;
+  font-size:clamp(22px,2.4vw,28px);
+  line-height:1.15;
+  overflow-wrap:break-word;
+  hyphens:auto;
+  text-wrap:pretty;
+  margin:11px 11px 13px;
+}
+.card-wink{
+  flex:0 0 auto;
+  font-size:clamp(11px,1.2vw,13px);
+  line-height:1.52;
+  margin:0 13px 17px;
+  overflow-wrap:break-word;
+  hyphens:auto;
+}
+.card-question{
+  flex:0 0 auto;
+  min-height:0;
+  margin:0 9px 8px;
+  padding:12px 12px;
+  font-size:clamp(19px,2.2vw,23px);
+  line-height:1.12;
+  overflow-wrap:anywhere;
+  hyphens:auto;
+}
+@media(max-width:650px){
+  .reading-cards{grid-template-columns:minmax(0,1fr);gap:32px;justify-content:center}
+  .drawn{width:min(100%,375px);margin-inline:auto}
+  .oracle-card{width:100%;max-width:none;min-height:540px;padding:11px}
+  .oracle-card .front-face{min-height:530px;padding:10px 5px 11px}
+  .oracle-card .back-face{inset:11px}
+  .card-title{font-size:clamp(24px,7.5vw,33px);margin:13px 7px 10px;max-width:calc(100% - 14px)}
+  .card-scene{height:120px;min-height:120px;margin:6px 6px 9px}
+  .card-message{font-size:clamp(21px,6.5vw,27px);line-height:1.15;margin:10px 8px 14px}
+  .card-wink{font-size:12px;margin:0 8px 17px;line-height:1.55}
+  .card-question{font-size:clamp(19px,6vw,23px);margin:0 6px 6px;padding:11px 10px;line-height:1.13}
+}
+@media(max-width:360px){
+  .reading.content{padding-left:13px;padding-right:13px}
+  .card-title{font-size:23px}
+  .card-message{font-size:22px}
+  .card-question{font-size:19px}
+  .oracle-card .front-face{min-height:540px}
+}
