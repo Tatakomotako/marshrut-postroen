@@ -119,14 +119,42 @@ function sample(){
   return result;
 }
 function draw(){state.reading=sample();state.index=0;renderResult();show('result');}
-function motif(cat){return {path:'✈',changes:'✧',love:'♡',money:'◈',self:'✺',bonds:'✦',rest:'☾',courage:'✧'}[cat]||'✧';}
+/* Каждая карта имеет собственный визуальный маршрут: фотография, кадрирование, золотой мотив.
+   Сюжеты прикреплены к id, а не к теме; новые карты не пересекаются с печатной колодой. */
+const pictures=[
+'photo-1436491865332-7a61a109cc05','photo-1488646953014-85cb44e25828','photo-1500530855697-b586d89ba3ee','photo-1469854523086-cc02fe5d8800','photo-1501785888041-af3ef285b470','photo-1530789253388-582c481c54b0','photo-1476514525535-07fb3b4ae5f1',
+'photo-1519681393784-d120267933ba','photo-1500534314209-a25ddb2bd429','photo-1470770841072-f978cf4d019e','photo-1439066615861-d1af74d74000','photo-1504198453319-5ce911bafcde','photo-1488085061387-422e29b40080','photo-1469474968028-56623f02e42e',
+'photo-1499856871958-5b9627545d1a','photo-1441986300917-64674bd600d8','photo-1500534623283-312aade485b7','photo-1523906834658-6e24ef2386f9','photo-1490750967868-88aa4486c946','photo-1502920917128-1aa500764cbd','photo-1566073771259-6a8506099945',
+'photo-1527631746610-bca00a040d60','photo-1507525428034-b723cf961d3e','photo-1490730141103-6cac27aaab94','photo-1518837695005-2083093ee35b','photo-1496181133206-80ce9b88a853','photo-1529156069898-49953e39b3ac','photo-1519681393784-d120267933ba',
+'photo-1436491865332-7a61a109cc05','photo-1534447677768-be436bb09401','photo-1454496522488-7a8e488e860b','photo-1477959858617-67f85cf4f1df','photo-1516483638261-f4dbaf036963','photo-1500530855697-b586d89ba3ee','photo-1464822759023-fed622ff2c3b',
+'photo-1521737711867-e3b97375f902','photo-1501785888041-af3ef285b470','photo-1533104816931-20fa691ff6ca','photo-1480796927426-f609979314bd','photo-1518837695005-2083093ee35b','photo-1529156069898-49953e39b3ac','photo-1488646953014-85cb44e25828',
+'photo-1519681393784-d120267933ba','photo-1470770841072-f978cf4d019e','photo-1490730141103-6cac27aaab94','photo-1566073771259-6a8506099945','photo-1469474968028-56623f02e42e','photo-1507525428034-b723cf961d3e','photo-1500534314209-a25ddb2bd429',
+'photo-1436491865332-7a61a109cc05','photo-1500534623283-312aade485b7','photo-1451187580459-43490279c0fa','photo-1490750967868-88aa4486c946','photo-1531366936337-7c912a4589a7','photo-1488085061387-422e29b40080','photo-1476514525535-07fb3b4ae5f1'];
+function motif(cat){return {path:'✈',changes:'✧',love:'♡',money:'✦',self:'✺',bonds:'✧',rest:'☾',courage:'✈'}[cat]||'✧';}
+function wordLines(title){
+  // Переносим только по словам. Никаких «ФИНАНСО- / ВЫЙ».
+  const words=title.split(/\s+/), lines=[];
+  if(words.length<2)return [title];
+  if(words.length===2)return words;
+  const mid=Math.ceil(words.length/2);
+  return [words.slice(0,mid).join(' '),words.slice(mid).join(' ')];
+}
 function cardHTML(c){
+ const index=c.id-17;
+ const picture=pictures[index]||pictures[0];
+ const photo='https://images.unsplash.com/'+picture+'?auto=format&fit=crop&w=1000&q=82';
+ const positions=['center','center 38%','center 60%','48% center','60% center','center 44%'];
+ const shift=positions[index%positions.length];
+ const title=wordLines(c.title).map(line=>'<span class="card-title-line">'+escapeText(line)+'</span>').join('');
  return '<article class="oracle-card" aria-label="'+escapeText(c.title)+'">'+
  '<div class="card-inner"><div class="card-stars">✦ <span>✧</span> ✦</div>'+
- '<h2 class="card-title">'+escapeText(c.title)+'</h2>'+
- '<div class="card-scene category-'+escapeText(c.cat)+'" aria-hidden="true"><span class="sky-dots">✧ ─── ✦ ─── ✧</span><span class="card-symbol">'+motif(c.cat)+'</span><span class="scene-route">⋆ ── ✈ ── ⋆</span></div>'+
- '<div class="card-text"><p class="card-message">'+escapeText(c.message)+'</p><p class="card-wink">'+escapeText(c.wink)+'</p>'+
- '<p class="card-question">'+escapeText(c.question)+'</p></div></div></article>';
+ '<h2 class="card-title">'+title+'</h2>'+
+ '<div class="card-scene cinematic category-'+escapeText(c.cat)+'" aria-hidden="true" style="--photo-position:'+shift+';--photo-shift:'+(index%4)+'">'+
+ '<img src="'+photo+'" loading="lazy" decoding="async" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">'+
+ '<div class="scene-vignette"></div><span class="scene-glint">✦</span><span class="scene-compass">'+motif(c.cat)+'</span><div class="scene-orbit"></div>'+
+ '</div>'+
+ '<div class="card-text"><p class="card-message">'+escapeText(c.message)+'</p><div class="text-divider">✦</div>'+
+ '<p class="card-wink">'+escapeText(c.wink)+'</p><p class="card-question">'+escapeText(c.question)+'</p></div></div></article>';
 }
 function renderResult(){
  const card=state.reading[state.index];if(!card)return;
