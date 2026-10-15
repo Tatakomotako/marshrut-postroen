@@ -12,3 +12,42 @@
 @media(max-width:350px){.result-container{padding-left:12px;padding-right:12px}.oracle-card .card-inner{padding:9px 9px 11px}.card-title{font-size:25px}.card-message{font-size:21px}.card-question{font-size:19px}.topic-option{gap:8px;padding:10px}.topic-option strong{font-size:11px}.home-content h1{font-size:62px}}
 @keyframes appearin{from{opacity:.25;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* CINEMATIC ORACLE — editorial travel luxury. Every card has its own photo and its own text. */
+.oracle-card{background:linear-gradient(135deg,#60172e,#300817 86%);box-shadow:0 16px 38px rgba(0,0,0,.44),0 0 0 1px rgba(241,197,127,.24);border-color:#e5b777}
+.oracle-card .card-inner{background:radial-gradient(ellipse at 50% 16%,#651b34 0%,#460d24 60%,#3a071c 100%);padding:10px 13px 15px;border-color:#d4a365}
+.card-stars{font-size:16px;margin:0 4px;color:#e7bc7e}
+.card-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(27px,5vw,39px);font-weight:650;line-height:.91;letter-spacing:.7px;margin:12px 3px 14px;overflow-wrap:normal;word-break:normal;hyphens:none;text-wrap:initial}
+.card-title-line{display:block;white-space:nowrap;line-height:1.02}
+.card-title-line.long-word{font-size:.73em}
+.card-title-line.medium-word{font-size:.85em}
+.card-scene.cinematic{height:210px;min-height:210px;overflow:hidden;margin:0 0 2px;border:2px solid #d7a66d;background:radial-gradient(ellipse at 70% 80%,#e8ad70,#8c526e 43%,#31203a)}
+.card-scene.cinematic>img{height:100%;width:100%;display:block;object-fit:cover;object-position:var(--photo-position,center);filter:sepia(.23) saturate(1.25) contrast(1.1) brightness(.82);transform:scale(1.03)}
+.scene-vignette{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(33,5,22,.24),transparent 28%,transparent 65%,rgba(57,7,20,.24)),radial-gradient(ellipse at center,transparent 43%,rgba(56,5,25,.55) 100%);mix-blend-mode:multiply}
+.scene-glint{position:absolute;z-index:2;right:18px;top:11px;color:#f9de9f;font-size:18px;text-shadow:0 0 9px #ffe8ae}
+.scene-compass{position:absolute;z-index:2;bottom:7px;left:12px;font-size:20px;color:#f4d1a1;filter:drop-shadow(0 0 6px #f8d9a0);opacity:.7}
+.scene-orbit{position:absolute;z-index:2;bottom:-45px;left:-18px;width:100px;height:100px;border-radius:50%;border:1px dashed rgba(245,209,160,.45)}
+.card-scene.cinematic::after,.card-scene.cinematic::before{display:none!important}
+.sky-dots,.card-symbol,.scene-route{display:none!important}
+.card-message{font-size:clamp(22px,3.5vw,27px);line-height:1.15;margin:18px 7px 9px;color:#f7dfc5;hyphens:none;overflow-wrap:normal}
+.text-divider{color:#e1b274;font-size:14px;display:flex;align-items:center;gap:10px;justify-content:center;margin:5px auto 11px;width:75%}
+.text-divider::before,.text-divider::after{content:'';width:40%;height:1px;background:linear-gradient(to right,transparent,#da9f6b)}
+.text-divider::after{transform:scaleX(-1)}
+.card-wink{color:#eac0bd;font-size:12px;line-height:1.56;margin:0 8px 16px}
+.card-question{border:1px solid #dcb07b;border-radius:42px;padding:10px 11px;line-height:1.17;color:#f4d8be;font-size:clamp(19px,3.2vw,23px);overflow-wrap:normal;hyphens:none}
+@media(max-width:650px){
+.oracle-card .card-inner{padding:10px 12px 13px}
+.card-title{font-size:clamp(26px,8.1vw,35px);margin:11px 0 12px}
+.card-scene.cinematic{height:178px;min-height:178px}
+.card-message{font-size:clamp(21px,6.3vw,26px);margin:13px 3px 8px;line-height:1.15}
+.card-wink{font-size:11px;line-height:1.48;margin:0 4px 14px}
+.card-question{font-size:clamp(18px,5.5vw,22px);padding:10px 12px;line-height:1.17}
+.text-divider{margin:4px auto 9px}
+}
+@media(max-width:365px){
+.card-title{font-size:clamp(22px,7.3vw,26px)}
+.card-scene.cinematic{height:154px;min-height:154px}
+.card-message{font-size:21px}
+.card-wink{font-size:10.5px}
+.card-question{font-size:19px}
+}
