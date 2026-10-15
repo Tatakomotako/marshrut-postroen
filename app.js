@@ -61,52 +61,148 @@ const data=[
 ['courage','Прямой рейс к мечте','Честный разговор с собой сокращает путь. Назови настоящее желание и найди первый шаг.','Перестань делать три пересадки через «как-нибудь потом».','Что я могу сделать напрямую?'],
 ['courage','Смелость быть видимой','Твои идеи не обязаны нравиться всем. Но они заслуживают выйти из черновиков.','Некоторые звёзды не вмещаются в режим инкогнито.','Где я готова показать себя?']
 ];
+
 const cards=data.map((d,i)=>({id:i+17,cat:d[0],title:d[1],message:d[2],wink:d[3],question:d[4]}));
 const labels={one:['Знак для тебя'],day:['Энергия дня'],three:['Что отпустить','Что принять','Куда двигаться'],five:['Что оставить в прошлом','Что взять с собой','На что опереться','Что тебя удивит','Куда ведёт маршрут']};
-const modes={one:{name:'Твоё послание',num:1},day:{name:'Карта дня',num:1},three:{name:'Три остановки',num:3},five:{name:'Рейс в 2027',num:5}};
+const modeNames={one:'Одно послание',day:'Карта дня',three:'Три остановки',five:'Рейс в 2027'};
+const counts={one:1,day:1,three:3,five:5};
+const views=['home','mode','topic','ready','result'];
 const el=id=>document.getElementById(id);
-const state={mode:'one',category:'all',reading:[],previous:[]};
-const savedKey='marshrut-postroen-saved-v3';
-const legacySavedKey='marshrut-postroen-saved-v2';
+const state={stage:'home',mode:'one',cat:'all',reading:[],previous:[],index:0};
+const storageKey='marshrut-postroen-saved-v3';
 let saved=new Set();
-try{const v=JSON.parse(localStorage.getItem(savedKey)||localStorage.getItem(legacySavedKey)||'[]');if(Array.isArray(v))saved=new Set(v.filter(id=>cards.some(c=>c.id===id)));}catch(e){}
-const safe=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-let toastTimeout=null;
-function toast(msg){clearTimeout(toastTimeout);const t=el('toast');t.textContent=msg;t.classList.add('visible');toastTimeout=setTimeout(()=>t.classList.remove('visible'),3000);}
-function updateSaved(){el('savedCount').textContent=saved.size;try{localStorage.setItem(savedKey,JSON.stringify(Array.from(saved)));}catch(e){}}
-function renderTopics(){const box=el('topics');box.innerHTML='';categoryOrder.forEach(cat=>{const b=document.createElement('button');b.type='button';b.textContent=categoryNames[cat];b.className='topic'+(cat===state.category?' active':'');b.dataset.cat=cat;b.setAttribute('aria-pressed',cat===state.category?'true':'false');box.appendChild(b);});}
-function selectMode(mode){state.mode=mode;document.querySelectorAll('[data-mode]').forEach(b=>{const s=b.dataset.mode===mode;b.classList.toggle('selected',s);b.setAttribute('aria-pressed',String(s));});el('drawButton').innerHTML=(mode==='one'?'Вытянуть карту':mode==='day'?'Открыть карту дня':mode==='three'?'Вытянуть три карты':'Построить рейс в 2027')+' <span>↗</span>';}
-function randomInt(max){if(max<=1)return 0;try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%max;}catch(e){return Math.floor(Math.random()*max);}}
-function dayIndex(len){const d=new Date();const str=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()+'|'+state.category;let hash=2166136261;for(let i=0;i<str.length;i++){hash^=str.charCodeAt(i);hash=Math.imul(hash,16777619);}return (hash>>>0)%len;}
-function getDeck(){return cards.filter(c=>state.category==='all'||c.cat===state.category);}
-function draw(){let deck=getDeck();const m=modes[state.mode];if(!deck.length)return toast('Пока нет карт для этой темы.');let chosen=[];
-if(state.mode==='day')chosen=[deck[dayIndex(deck.length)]];
-else{let pool=deck.filter(c=>!state.previous.includes(c.id));if(pool.length<m.num)pool=deck.slice();for(let i=0;i<m.num&&pool.length;i++){chosen.push(pool.splice(randomInt(pool.length),1)[0]);}state.previous=chosen.map(c=>c.id);}
-renderCards(chosen,state.mode,false);
-el('reading').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+try{const s=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(s))saved=new Set(s.filter(id=>cards.some(c=>c.id===id)));}catch(e){}
+const escapeText=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let timer=0;
+function notify(msg){const t=el('toast');t.textContent=msg;t.classList.add('visible');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('visible'),3200);}
+function scrollTopNow(){window.scrollTo({top:0,left:0,behavior:'instant'});}
+function show(stage){
+  if(!views.includes(stage))return;
+  state.stage=stage;
+  for(const name of views){
+    const section=el('view-'+name);
+    section.hidden=name!==stage;
+    section.classList.toggle('is-active',name===stage);
+  }
+  scrollTopNow();
+  const main=el('app'); main.dataset.stage=stage;
+  if(stage!=='result'){const h=el('view-'+stage).querySelector('h1');if(h)h.setAttribute('tabindex','-1');}
 }
-function art(cat){return {path:'✈',changes:'✦',love:'♡',money:'✧',self:'✺',bonds:'✦',rest:'☾',courage:'✈'}[cat]||'✧';}
-function cardHtml(c,i,mode,opened){const isSaved=saved.has(c.id);return '<article class="drawn" style="animation-delay:'+i*100+'ms"><p class="position-label">'+safe(labels[mode][i]||'Послание')+'</p>'+
-'<div class="oracle-card'+(opened?' flipped':'')+'" data-flip="'+c.id+'"><button type="button" class="back-face" aria-label="Открыть карту '+safe(c.title)+'"><span class="symbol">✧</span><strong>МАРШРУТ<br>ПОСТРОЕН</strong><small>Нажми, чтобы открыть</small></button>'+
-'<div class="front-face"><h3 class="card-title">'+safe(c.title)+'</h3><div class="card-scene c-'+safe(c.cat)+'"><span class="card-illustration">'+art(c.cat)+'</span></div><p class="card-message">'+safe(c.message)+'</p><p class="card-wink">'+safe(c.wink)+'</p><p class="card-question">'+safe(c.question)+'</p></div></div>'+
-'<div class="card-actions"><button type="button" class="mini-action'+(isSaved?' active':'')+'" data-save="'+c.id+'">'+(isSaved?'♥ Сохранено':'♡ Сохранить')+'</button><button type="button" class="mini-action" data-share="'+c.id+'">↗ Поделиться</button></div></article>';}
-function renderCards(draws,mode,opened){state.reading=draws;el('emptyReading').hidden=true;el('readingTitle').innerHTML=(mode==='three'?'Три':'Твоё')+' <em>'+(mode==='five'?'новая глава':mode==='day'?'карта дня':mode==='three'?'остановки':'послание')+'</em>';el('readingDescription').textContent='Посмотри, какая мысль откликнется первой. Не обязательно принимать каждое слово буквально.';el('readingCards').innerHTML=draws.map((c,i)=>cardHtml(c,i,mode,opened)).join('');el('readingActions').hidden=false;}
-function save(id){if(saved.has(id)){saved.delete(id);toast('Карта убрана из сохранённых');}else{saved.add(id);toast('Карта сохранена ♡');}updateSaved();if(state.reading.length)renderCards(state.reading,state.mode,true);}
-function shareText(list){return '✦ МАРШРУТ ПОСТРОЕН ✦\n\n'+list.map(c=>c.title+'\n'+c.message+'\n'+c.wink+'\nВопрос: '+c.question).join('\n\n✦\n\n')+'\n\n'+location.href.split('#')[0];}
-async function share(list){const t=shareText(list);try{if(navigator.share){await navigator.share({title:'Маршрут построен',text:t,url:location.href.split('#')[0]});return;}if(navigator.clipboard){await navigator.clipboard.writeText(t);toast('Послание скопировано');return;}throw new Error('No clipboard');}catch(e){if(e&&e.name==='AbortError')return;try{const input=document.createElement('textarea');input.value=t;document.body.appendChild(input);input.select();document.execCommand('copy');input.remove();toast('Послание скопировано');}catch(ex){toast('Не получилось поделиться — попробуй ещё раз');}}}
-function openSaved(){renderSaved();el('savedModal').hidden=false;document.body.style.overflow='hidden';el('closeSaved').focus();}
-function closeSaved(){el('savedModal').hidden=true;document.body.style.overflow='';el('showSaved').focus();}
-function renderSaved(){const arr=Array.from(saved).reverse();el('savedList').innerHTML=arr.length?arr.map(id=>{const c=cards.find(v=>v.id===id);if(!c)return '';return '<div class="saved-item"><div><strong>'+safe(c.title)+'</strong><small>'+safe(c.question)+'</small></div><button type="button" data-open="'+c.id+'">Открыть ↗</button></div>';}).join(''):'<p class="modal-intro">Здесь пока пусто. А хорошие послания уже готовятся к посадке.</p>';}
-el('modeGrid').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(b)selectMode(b.dataset.mode);});
-el('topics').addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b)return;state.category=b.dataset.cat;renderTopics();el('drawHint').textContent=state.category==='all'?'Сделай вдох. Ответ не обязан быть удобным, но может оказаться очень кстати.':'Тема «'+categoryNames[state.category]+'». Иногда ответ оказывается неожиданным.';});
+function renderTopics(){
+  const container=el('topics');
+  const symbols={all:'✦',path:'✈',changes:'✧',love:'♡',money:'◈',self:'✺',bonds:'✦',rest:'☾',courage:'✳'};
+  container.innerHTML=categoryOrder.map(cat=>'<button type="button" class="topic-option" data-cat="'+cat+'"><span aria-hidden="true">'+symbols[cat]+'</span><strong>'+escapeText(categoryNames[cat])+'</strong><span class="choice-arrow">↗</span></button>').join('');
+}
+function selectMode(mode){if(!(mode in counts))return;state.mode=mode;show('topic');}
+function selectTopic(cat){
+  if(!categoryOrder.includes(cat))return;
+  state.cat=cat;
+  el('chosenSummary').textContent=modeNames[state.mode]+' · '+categoryNames[cat];
+  el('drawButton').innerHTML=(state.mode==='five'?'Открыть большой расклад':state.mode==='three'?'Открыть три карты':state.mode==='day'?'Открыть карту дня':'Открыть послание')+' <span>↗</span>';
+  show('ready');
+}
+function randomIndex(length){if(length<=1)return 0;try{const n=new Uint32Array(1);crypto.getRandomValues(n);return n[0]%length;}catch(e){return Math.floor(Math.random()*length);}}
+function dayIndex(length){
+  const d=new Date(),str=[d.getFullYear(),d.getMonth()+1,d.getDate(),state.cat].join('|');
+  let hash=2166136261;for(let i=0;i<str.length;i++){hash^=str.charCodeAt(i);hash=Math.imul(hash,16777619);}
+  return (hash>>>0)%length;
+}
+function sample(){
+  let deck=cards.filter(c=>state.cat==='all'||c.cat===state.cat);
+  if(!deck.length)deck=cards.slice();
+  if(state.mode==='day')return [deck[dayIndex(deck.length)]];
+  let pool=deck.filter(c=>!state.previous.includes(c.id));
+  if(pool.length<counts[state.mode])pool=deck.slice();
+  const result=[];
+  while(result.length<counts[state.mode] && pool.length)result.push(pool.splice(randomIndex(pool.length),1)[0]);
+  state.previous=result.map(c=>c.id);
+  return result;
+}
+function draw(){state.reading=sample();state.index=0;renderResult();show('result');}
+function motif(cat){return {path:'✈',changes:'✧',love:'♡',money:'◈',self:'✺',bonds:'✦',rest:'☾',courage:'✧'}[cat]||'✧';}
+function cardHTML(c){
+ return '<article class="oracle-card" aria-label="'+escapeText(c.title)+'">'+
+ '<div class="card-inner"><div class="card-stars">✦ <span>✧</span> ✦</div>'+
+ '<h2 class="card-title">'+escapeText(c.title)+'</h2>'+
+ '<div class="card-scene category-'+escapeText(c.cat)+'" aria-hidden="true"><span class="sky-dots">✧ ─── ✦ ─── ✧</span><span class="card-symbol">'+motif(c.cat)+'</span><span class="scene-route">⋆ ── ✈ ── ⋆</span></div>'+
+ '<div class="card-text"><p class="card-message">'+escapeText(c.message)+'</p><p class="card-wink">'+escapeText(c.wink)+'</p>'+
+ '<p class="card-question">'+escapeText(c.question)+'</p></div></div></article>';
+}
+function renderResult(){
+ const card=state.reading[state.index];if(!card)return;
+ const len=state.reading.length;
+ el('positionLabel').textContent=(labels[state.mode]||[])[state.index]||'Твой знак';
+ el('resultContent').innerHTML=cardHTML(card);
+ el('resultPager').hidden=len<=1;
+ el('pagerDots').textContent=(state.index+1)+' / '+len;
+ el('prevCard').disabled=state.index===0;
+ el('nextCard').disabled=state.index===len-1;
+ el('saveCard').textContent=(saved.has(card.id)?'♥ Сохранено':'♡ Сохранить');
+ el('saveCard').classList.toggle('saved',saved.has(card.id));
+ // Keep the result screen in place while changing cards. No full-page scrolling.
+}
+function turnCard(delta){
+ const index=state.index+delta;
+ if(index<0||index>=state.reading.length)return;
+ state.index=index;renderResult();
+ // When cards have varying heights, keep the title and card in view.
+ window.scrollTo({top:0,left:0,behavior:'instant'});
+}
+function saveCurrent(){
+ const c=state.reading[state.index];if(!c)return;
+ if(saved.has(c.id)){saved.delete(c.id);notify('Убрала карту из сохранённых');}
+ else{saved.add(c.id);notify('Карта сохранена ♡');}
+ try{localStorage.setItem(storageKey,JSON.stringify([...saved]));}catch(e){}
+ updateSavedCount();renderResult();
+}
+function updateSavedCount(){el('savedCount').textContent=saved.size;}
+function shareText(list){
+ return '✦ МАРШРУТ ПОСТРОЕН ✦\n\n'+list.map(c=>c.title+'\n'+c.message+'\n'+c.wink+'\nВопрос: '+c.question).join('\n\n✦\n\n')+'\n\n'+location.href.split('#')[0];
+}
+async function share(list){
+ const t=shareText(list);try{
+  if(navigator.share){await navigator.share({title:'Маршрут построен',text:t});return;}
+  if(navigator.clipboard){await navigator.clipboard.writeText(t);notify('Послание скопировано');return;}
+  throw Error('Clipboard unavailable');
+ }catch(e){if(e?.name==='AbortError')return;try{const n=document.createElement('textarea');n.value=t;document.body.appendChild(n);n.select();document.execCommand('copy');n.remove();notify('Послание скопировано');}catch(x){notify('Не удалось поделиться — попробуй ещё раз');}}
+}
+function openSaved(){
+ const arr=[...saved].reverse();
+ el('savedList').innerHTML=arr.length?arr.map(id=>{
+ const c=cards.find(c=>c.id===id);
+ return c?'<div class="saved-item"><div><strong>'+escapeText(c.title)+'</strong><small>'+escapeText(c.question)+'</small></div><button type="button" data-open="'+c.id+'">Открыть ↗</button></div>':'';
+ }).join(''):'<p class="modal-intro">Здесь пока пусто. Красивые послания уже готовятся к посадке.</p>';
+ el('savedModal').hidden=false;document.body.classList.add('modal-open');
+ el('closeSaved').focus();
+}
+function closeSaved(){el('savedModal').hidden=true;document.body.classList.remove('modal-open');el('showSaved').focus();}
+function openSavedCard(id){
+ const c=cards.find(c=>c.id===id);if(!c)return;
+ closeSaved();state.reading=[c];state.index=0;state.mode='one';state.cat='all';renderResult();show('result');
+}
+el('startJourney').addEventListener('click',()=>show('mode'));
+el('homeLink').addEventListener('click',()=>show('home'));
+el('modeGrid').addEventListener('click',e=>{const item=e.target.closest('[data-mode]');if(item)selectMode(item.dataset.mode);});
+el('topics').addEventListener('click',e=>{const item=e.target.closest('[data-cat]');if(item)selectTopic(item.dataset.cat);});
+document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.back)));
 el('drawButton').addEventListener('click',draw);
-el('againButton').addEventListener('click',draw);
-el('readingCards').addEventListener('click',e=>{const s=e.target.closest('[data-save]');if(s){save(Number(s.dataset.save));return;}const sh=e.target.closest('[data-share]');if(sh){const c=cards.find(c=>c.id===Number(sh.dataset.share));if(c)share([c]);return;}const flip=e.target.closest('.back-face');if(flip)flip.closest('.oracle-card').classList.add('flipped');});
-el('shareReading').addEventListener('click',()=>state.reading.length&&share(state.reading));
+el('prevCard').addEventListener('click',()=>turnCard(-1));
+el('nextCard').addEventListener('click',()=>turnCard(1));
+el('saveCard').addEventListener('click',saveCurrent);
+el('shareCard').addEventListener('click',()=>{const c=state.reading[state.index];if(c)share([c]);});
+el('againButton').addEventListener('click',()=>show('mode'));
 el('showSaved').addEventListener('click',openSaved);
 el('closeSaved').addEventListener('click',closeSaved);
-el('savedModal').addEventListener('click',e=>{if(e.target===el('savedModal'))closeSaved();const b=e.target.closest('[data-open]');if(b){const c=cards.find(x=>x.id===Number(b.dataset.open));closeSaved();if(c){state.category='all';renderTopics();selectMode('one');renderCards([c],'one',true);el('reading').scrollIntoView({behavior:'smooth'});}}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!el('savedModal').hidden)closeSaved();});
-renderTopics();selectMode('one');updateSaved();
-console.info('Маршрут построен: '+cards.length+' онлайн-карт без повторов печатной колоды.');
+el('savedModal').addEventListener('click',e=>{
+ if(e.target===el('savedModal'))closeSaved();
+ const b=e.target.closest('[data-open]');if(b)openSavedCard(Number(b.dataset.open));
+});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&!el('savedModal').hidden)closeSaved();
+ if(state.stage==='result'&&el('savedModal').hidden){
+  if(e.key==='ArrowRight')turnCard(1);if(e.key==='ArrowLeft')turnCard(-1);
+ }
+});
+renderTopics();updateSavedCount();show('home');
+console.info('Маршрут построен: '+cards.length+' уникальных онлайн-посланий; пошаговый выбор.');
 })();
