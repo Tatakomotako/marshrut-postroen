@@ -145,7 +145,7 @@ function cardHTML(c){
  const photo='https://images.unsplash.com/'+picture+'?auto=format&fit=crop&w=1000&q=82';
  const positions=['center','center 38%','center 60%','48% center','60% center','center 44%'];
  const shift=positions[index%positions.length];
- const title=wordLines(c.title).map(line=>'<span class="card-title-line">'+escapeText(line)+'</span>').join('');
+ const title=wordLines(c.title).map(line=>'<span class="card-title-line'+(line.length>20?' long-word':line.length>15?' medium-word':'')+'">'+escapeText(line)+'</span>').join('');
  return '<article class="oracle-card" aria-label="'+escapeText(c.title)+'">'+
  '<div class="card-inner"><div class="card-stars">✦ <span>✧</span> ✦</div>'+
  '<h2 class="card-title">'+title+'</h2>'+
