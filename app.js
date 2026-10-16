@@ -130,17 +130,16 @@ const pictures=[
 'photo-1521737711867-e3b97375f902','photo-1501785888041-af3ef285b470','photo-1533104816931-20fa691ff6ca','photo-1480796927426-f609979314bd','photo-1518837695005-2083093ee35b','photo-1529156069898-49953e39b3ac','photo-1488646953014-85cb44e25828',
 'photo-1519681393784-d120267933ba','photo-1470770841072-f978cf4d019e','photo-1490730141103-6cac27aaab94','photo-1566073771259-6a8506099945','photo-1469474968028-56623f02e42e','photo-1507525428034-b723cf961d3e','photo-1500534314209-a25ddb2bd429',
 'photo-1436491865332-7a61a109cc05','photo-1500534623283-312aade485b7','photo-1451187580459-43490279c0fa','photo-1490750967868-88aa4486c946','photo-1531366936337-7c912a4589a7','photo-1488085061387-422e29b40080','photo-1476514525535-07fb3b4ae5f1'];
-const exclusiveScenes = Object.freeze({
-  'Тёплый терминал':0,
-  'Финансовый компас':1,
-  'Свой пейзаж':2,
-  'Незапланированный разворот':3,
-  'Тихий лаунж':4,
-  'Сон без тревог':5,
-  'Пункт назначения — я':6,
-  'Зелёный коридор':7,
-  'Режим полёта':8,
-  'Первый класс смелости':9
+// High-resolution, story-matched photography. The former 5 KB collage was too blurry.
+const storyPhotos = Object.freeze({
+  'Тёплый терминал':'photo-1759038086846-c97a8adfce98', // warm airport lounge
+  'Финансовый компас':'photo-1488628278511-2177a435414d', // compass and map
+  'Свой пейзаж':'photo-1775214593099-322805de2958', // aircraft wing and new horizon
+  'Незапланированный разворот':'photo-1776348312717-aefd8ef007cb', // winding road at sunset
+  'Зелёный коридор':'photo-1785220289384-b716a6fcfd41', // ivy archway
+  'Режим полёта':'photo-1436491865332-7a61a109cc05', // flight over clouds
+  'Первый класс смелости':'photo-1754993855122-a155cf6cf16c', // boarding stairs
+  'Письмо без адреса':'photo-1774891937561-da8dd95bd9c9' // envelopes and handwriting
 });
 function motif(cat){return {path:'✈',changes:'✧',love:'♡',money:'✦',self:'✺',bonds:'✧',rest:'☾',courage:'✈'}[cat]||'✧';}
 function wordLines(title){
@@ -153,24 +152,16 @@ function wordLines(title){
 }
 function cardHTML(c){
  const index=c.id-17;
- const picture=pictures[index]||pictures[0];
- const photo='https://images.unsplash.com/'+picture+'?auto=format&fit=crop&w=1000&q=82';
+ const picture=storyPhotos[c.title]||pictures[index]||pictures[0];
+ const photo='https://images.unsplash.com/'+picture+'?auto=format&fit=crop&w=1200&q=88';
  const positions=['center','center 38%','center 60%','48% center','60% center','center 44%'];
  const shift=positions[index%positions.length];
  const title=wordLines(c.title).map(line=>'<span class="card-title-line'+(line.length>20?' long-word':line.length>15?' medium-word':'')+'">'+escapeText(line)+'</span>').join('');
- const artIndex=exclusiveScenes[c.title];
- const isExclusive=Number.isInteger(artIndex);
- const x=(artIndex%5)*25;
- const y=artIndex>=5?100:0;
- const artStyle=isExclusive?'--art-x:'+x+'%;--art-y:'+y+'%;':'--photo-position:'+shift;
- const className='card-scene cinematic category-'+escapeText(c.cat)+(isExclusive?' exclusive-art':'');
- const image=isExclusive?'':'<img src="'+photo+'" loading="lazy" decoding="async" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
  return '<article class="oracle-card" aria-label="'+escapeText(c.title)+'">'+
- '<div class="card-inner"><div class="card-stars">✦ <span>✧</span> ✦</div>'+
- '<h2 class="card-title">'+title+'</h2>'+
- '<div class="'+className+'" aria-hidden="true" style="'+artStyle+'">'+
- image+'<div class="scene-vignette"></div><span class="scene-glint">✦</span><span class="scene-compass">'+motif(c.cat)+'</span><div class="scene-orbit"></div>'+
- '</div>'+
+ '<div class="card-inner"><div class="card-stars">✦ <span>✧</span> ✦</div><h2 class="card-title">'+title+'</h2>'+
+ '<div class="card-scene cinematic category-'+escapeText(c.cat)+'" aria-hidden="true" style="--photo-position:'+shift+'">'+
+ '<img src="'+photo+'" loading="lazy" decoding="async" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\\\'none\\\'">'+
+ '<div class="scene-vignette"></div><span class="scene-glint">✦</span><span class="scene-compass">'+motif(c.cat)+'</span><div class="scene-orbit"></div></div>'+
  '<div class="card-text"><p class="card-message">'+escapeText(c.message)+'</p><div class="text-divider">✦</div>'+
  '<p class="card-wink">'+escapeText(c.wink)+'</p><p class="card-question">'+escapeText(c.question)+'</p></div></div></article>';
 }
