@@ -160,7 +160,7 @@ function cardHTML(c){
  return '<article class="oracle-card" aria-label="'+escapeText(c.title)+'">'+
  '<div class="card-inner"><div class="card-stars">✦ <span>✧</span> ✦</div><h2 class="card-title">'+title+'</h2>'+
  '<div class="card-scene cinematic category-'+escapeText(c.cat)+'" aria-hidden="true" style="--photo-position:'+shift+'">'+
- '<img src="'+photo+'" loading="lazy" decoding="async" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\\\'none\\\'">'+
+ '<img src="'+photo+'" loading="lazy" decoding="async" alt="" referrerpolicy="no-referrer" onerror="this.remove()">'+
  '<div class="scene-vignette"></div><span class="scene-glint">✦</span><span class="scene-compass">'+motif(c.cat)+'</span><div class="scene-orbit"></div></div>'+
  '<div class="card-text"><p class="card-message">'+escapeText(c.message)+'</p><div class="text-divider">✦</div>'+
  '<p class="card-wink">'+escapeText(c.wink)+'</p><p class="card-question">'+escapeText(c.question)+'</p></div></div></article>';
