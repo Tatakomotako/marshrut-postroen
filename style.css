@@ -51,3 +51,16 @@
 .card-wink{font-size:10.5px}
 .card-question{font-size:19px}
 }
+
+/* First ten exclusive custom illustrations, cropped from the approved artwork.
+   The SVG-style gold frames and all Russian copy remain sharp, editable HTML. */
+.card-scene.cinematic.exclusive-art{
+  background-image:url('./assets/oracle_sprite.avif');
+  background-size:500% 200%;
+  background-position:var(--art-x,0%) var(--art-y,0%);
+  background-repeat:no-repeat;
+  background-color:#4c2032;
+}
+.card-scene.cinematic.exclusive-art>.scene-vignette{
+  background:linear-gradient(180deg,rgba(32,9,22,.08),transparent 43%,rgba(32,9,22,.12));
+}
