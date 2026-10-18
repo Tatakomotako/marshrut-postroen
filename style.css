@@ -56,3 +56,9 @@
 /* Full resolution imagery replaces the old 5 KB montage. */
 .card-scene.cinematic>img{display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto;object-position:var(--photo-position,center)}
 .card-scene.cinematic{background-color:#491e32}
+
+/* Complete art: preserve the 2:3 framing and eliminate duplicate visible text. */
+.oracle-full-image{display:block;width:100%;height:auto;aspect-ratio:2/3;object-fit:contain;box-shadow:0 19px 33px rgba(0,0,0,.42);border:0;max-width:100%}
+.oracle-full-image[hidden]{display:none!important}
+.result-content:has(.oracle-full-image:not([hidden])){max-width:430px}
+@media(max-width:650px){.result-content:has(.oracle-full-image:not([hidden])){max-width:380px}}
