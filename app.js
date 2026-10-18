@@ -169,7 +169,24 @@ function renderResult(){
  const card=state.reading[state.index];if(!card)return;
  const len=state.reading.length;
  el('positionLabel').textContent=(labels[state.mode]||[])[state.index]||'Твой знак';
- el('resultContent').innerHTML=cardHTML(card);
+ // A complete illustrated card replaces the HTML card when its image is present.
+ // If an image has not yet been uploaded, keep the original readable card.
+ const slot=el('resultContent');
+ slot.innerHTML=cardHTML(card);
+ const full=document.createElement('img');
+ full.className='oracle-full-image';
+ full.alt='Карта «'+card.title+'»: '+card.message+' '+card.wink+' Вопрос к себе: '+card.question;
+ full.loading='eager';
+ full.decoding='async';
+ full.hidden=true;
+ full.addEventListener('load',()=>{
+   if(!slot.contains(full))return;
+   const fallback=slot.querySelector('.oracle-card');
+   if(fallback)fallback.hidden=true;
+   full.hidden=false;
+ });
+ full.addEventListener('error',()=>full.remove());
+ full.src='./assets/cards/'+String(card.id-16).padStart(2,'0')+'.webp';
  el('resultPager').hidden=len<=1;
  el('pagerDots').textContent=(state.index+1)+' / '+len;
  el('prevCard').disabled=state.index===0;
