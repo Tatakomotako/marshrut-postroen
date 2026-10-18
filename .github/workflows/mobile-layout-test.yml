@@ -69,6 +69,12 @@ jobs:
               evaluate('result',['resultTitle','resultContent','resultPager','saveCard','shareCard','againButton'])
               driver.find_element(By.ID,'nextCard').click()
               evaluate('next-card',['resultContent','nextCard','againButton'])
+              pic=driver.find_element(By.CSS_SELECTOR,'#resultContent .oracle-full-image')
+              pic.click()
+              zoom=driver.find_element(By.ID,'cardZoom')
+              assert zoom.is_displayed(), 'Enlarged card view did not open'
+              driver.find_element(By.CSS_SELECTOR,'.card-zoom-close').click()
+              assert not driver.find_elements(By.ID,'cardZoom'), 'Zoom overlay did not close'
           driver.quit()
           for m in measurements:
               print(json.dumps(m,ensure_ascii=False))
