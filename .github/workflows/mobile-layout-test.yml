@@ -1,0 +1,79 @@
+name: Check mobile one-screen layouts
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/mobile-layout-test.yml
+      - style.css
+      - index.html
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mobile-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser test tools
+        run: |
+          python3 -m pip install -q --break-system-packages selenium
+          command -v google-chrome || command -v chromium
+          command -v chromedriver
+      - name: Test all steps at common phone sizes
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/oracle_server.log 2>&1 &
+          sleep 2
+          python3 - <<'PY'
+          import json,time
+          from selenium import webdriver
+          from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.common.by import By
+          options=Options()
+          options.add_argument('--headless=new')
+          options.add_argument('--no-sandbox')
+          options.add_argument('--disable-dev-shm-usage')
+          options.add_argument('--disable-gpu')
+          options.add_argument('--window-size=1100,1200')
+          driver=webdriver.Chrome(options=options)
+          measurements=[]
+          failures=[]
+          for w,h in [(390,844),(360,740),(320,640),(360,600),(412,915)]:
+              driver.execute_cdp_cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':h,'deviceScaleFactor':1,'mobile':True})
+              driver.get('http://127.0.0.1:8765/')
+              driver.execute_script('return document.fonts.ready')
+              def evaluate(step, ids):
+                  result=driver.execute_script("""
+                      const names=arguments[0],rects={};
+                      for(const id of names){ const el=document.getElementById(id); const r=el.getBoundingClientRect();
+                        rects[id]={top:Math.round(r.top),bottom:Math.round(r.bottom),height:Math.round(r.height),
+                                  visible:r.height>0&&r.top>=-2&&r.bottom<=window.innerHeight+2,
+                                  overflow:el.scrollHeight>el.clientHeight+3}; }
+                      return {viewport:window.innerHeight,pageScroll:document.documentElement.scrollHeight>window.innerHeight+2,
+                              rects,stage:document.querySelector('#app').dataset.stage};
+                  """,ids)
+                  row={'size':f'{w}x{h}','step':step,**result}
+                  measurements.append(row)
+                  for k,r in result['rects'].items():
+                      if not r['visible']: failures.append(f'{w}x{h} {step}: {k} outside view {r} (h={result["viewport"]})')
+                  if result['pageScroll']:failures.append(f'{w}x{h} {step} page scroll')
+                  return row
+              evaluate('home',['homeTitle','startJourney'])
+              driver.find_element(By.ID,'startJourney').click()
+              evaluate('mode',['modeTitle','modeGrid'])
+              driver.find_element(By.CSS_SELECTOR,'[data-mode="three"]').click()
+              evaluate('topic',['topicTitle','topics'])
+              driver.find_element(By.CSS_SELECTOR,'[data-cat="path"]').click()
+              evaluate('ready',['readyTitle','drawButton'])
+              driver.find_element(By.ID,'drawButton').click()
+              time.sleep(.6)
+              evaluate('result',['resultTitle','resultContent','resultPager','saveCard','shareCard','againButton'])
+              driver.find_element(By.ID,'nextCard').click()
+              evaluate('next-card',['resultContent','nextCard','againButton'])
+          driver.quit()
+          for m in measurements:
+              print(json.dumps(m,ensure_ascii=False))
+          if failures:
+              print('FAILED',*failures,sep='\\n')
+              raise SystemExit(1)
+          print('PASS: no controls outside viewport in all tested steps and sizes')
+          PY
