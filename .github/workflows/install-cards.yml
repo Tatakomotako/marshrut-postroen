@@ -1,0 +1,54 @@
+name: Install illustrated cards from ZIP
+on:
+  push:
+    branches: [main]
+    paths:
+      - oracle_assets.zip
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install-cards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Validate and unpack all 56 image files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          archive=Path('oracle_assets.zip')
+          if not archive.is_file():
+              raise SystemExit('Upload oracle_assets.zip to repository root first')
+          expected={f'assets/cards/{i:02d}.webp' for i in range(1,57)}
+          with zipfile.ZipFile(archive) as z:
+              actual={f.filename for f in z.infolist() if not f.is_dir()}
+              if actual != expected:
+                  missing=expected-actual
+                  unexpected=actual-expected
+                  raise SystemExit(f'Bad archive. Missing: {sorted(missing)}; unexpected: {sorted(unexpected)}')
+              for name in sorted(expected):
+                  image=z.read(name)
+                  if len(image)<1000 or image[:4]!=b'RIFF' or image[8:12]!=b'WEBP':
+                      raise SystemExit(f'Invalid WEBP: {name}')
+                  target=Path(name)
+                  target.parent.mkdir(parents=True,exist_ok=True)
+                  target.write_bytes(image)
+          print('All 56 illustrated cards installed.')
+          PY
+      - name: Commit illustrated cards
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/cards
+          if git diff --cached --quiet; then
+            echo "No asset changes needed."
+          else
+            git commit -m "Install 56 illustrated online oracle cards"
+            git push
+          fi
