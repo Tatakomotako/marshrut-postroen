@@ -62,3 +62,38 @@
 .oracle-full-image[hidden]{display:none!important}
 .result-content:has(.oracle-full-image:not([hidden])){max-width:430px}
 @media(max-width:650px){.result-content:has(.oracle-full-image:not([hidden])){max-width:380px}}
+
+
+/* The finished illustration is the only visible card. The matching 2:3 loading
+   surface prevents both old-card flashes and size jumps while images decode. */
+.result-content,.result-content:has(.oracle-full-image:not([hidden])){
+  width:100%;max-width:385px;margin-left:auto;margin-right:auto;
+}
+.oracle-card-loading{
+  width:100%;aspect-ratio:2/3;position:relative;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  background:radial-gradient(ellipse at 50% 37%,#6e2d41 0%,#491529 48%,#290b1d 100%);
+  border:2px solid #dcb37b;box-shadow:0 19px 33px rgba(0,0,0,.42);
+  color:#f9dca9;isolation:isolate;
+}
+.oracle-card-loading::before{
+  content:'';position:absolute;inset:12px;border:1px solid rgba(238,194,133,.5);
+  pointer-events:none;
+}
+.oracle-card-loading-star{
+  font:normal 48px/1 Georgia,serif;
+  animation:oracle-star-glow 1.7s ease-in-out infinite;
+  text-shadow:0 0 25px rgba(248,209,155,.4);
+}
+.oracle-card-loading-label{
+  font:500 12px/1.5 Manrope,Arial,sans-serif;
+  letter-spacing:1px;color:#e9c5b4;text-align:center;padding:0 28px;
+}
+@keyframes oracle-star-glow{
+  0%,100%{opacity:.55;transform:scale(.93)}
+  50%{opacity:1;transform:scale(1.1)}
+}
+@media(max-width:650px){
+  .result-content,.result-content:has(.oracle-full-image:not([hidden])){max-width:380px}
+}
+@media(prefers-reduced-motion:reduce){.oracle-card-loading-star{animation:none}}
