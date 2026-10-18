@@ -191,6 +191,8 @@ function preloadArtwork(card){
      reject(new Error('Illustration unavailable: '+card.id));
    },{once:true});
  });
+ // Preloading later cards can fail before they are shown; avoid unhandled rejections.
+ entry.promise.catch(()=>{});
  // Prevent excess decoded images from accumulating in a long session.
  if(artworkCache.size>=12)artworkCache.delete(artworkCache.keys().next().value);
  artworkCache.set(card.id,entry);
