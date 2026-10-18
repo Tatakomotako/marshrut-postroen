@@ -186,6 +186,7 @@ function renderResult(){
    full.hidden=false;
  });
  full.addEventListener('error',()=>full.remove());
+ slot.appendChild(full);
  full.src='./assets/cards/'+String(card.id-16).padStart(2,'0')+'.webp';
  el('resultPager').hidden=len<=1;
  el('pagerDots').textContent=(state.index+1)+' / '+len;
