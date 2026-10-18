@@ -165,36 +165,83 @@ function cardHTML(c){
  '<div class="card-text"><p class="card-message">'+escapeText(c.message)+'</p><div class="text-divider">✦</div>'+
  '<p class="card-wink">'+escapeText(c.wink)+'</p><p class="card-question">'+escapeText(c.question)+'</p></div></div></article>';
 }
+// Cache the selected full-size illustrations so paging doesn't flash the old HTML card.
+const artworkCache=new Map();
+function artworkUrl(card){return './assets/cards/'+String(card.id-16).padStart(2,'0')+'.webp';}
+function preloadArtwork(card){
+ if(!card)return null;
+ let entry=artworkCache.get(card.id);
+ if(entry){
+   artworkCache.delete(card.id);
+   artworkCache.set(card.id,entry);
+   return entry;
+ }
+ const image=document.createElement('img');
+ image.decoding='async';
+ image.loading='eager';
+ entry={image,status:'loading',promise:null};
+ entry.promise=new Promise((resolve,reject)=>{
+   image.addEventListener('load',()=>{
+     // Wait for decoding before revealing the illustrated card.
+     const decoded=typeof image.decode==='function'?image.decode().catch(()=>{}):Promise.resolve();
+     decoded.then(()=>{entry.status='ready';resolve(image);});
+   },{once:true});
+   image.addEventListener('error',()=>{
+     entry.status='error';
+     reject(new Error('Illustration unavailable: '+card.id));
+   },{once:true});
+ });
+ // Prevent excess decoded images from accumulating in a long session.
+ if(artworkCache.size>=12)artworkCache.delete(artworkCache.keys().next().value);
+ artworkCache.set(card.id,entry);
+ image.src=artworkUrl(card);
+ return entry;
+}
 function renderResult(){
  const card=state.reading[state.index];if(!card)return;
  const len=state.reading.length;
  el('positionLabel').textContent=(labels[state.mode]||[])[state.index]||'Твой знак';
- // A complete illustrated card replaces the HTML card when its image is present.
- // If an image has not yet been uploaded, keep the original readable card.
  const slot=el('resultContent');
- slot.innerHTML=cardHTML(card);
- const full=document.createElement('img');
- full.className='oracle-full-image';
- full.alt='Карта «'+card.title+'»: '+card.message+' '+card.wink+' Вопрос к себе: '+card.question;
- full.loading='eager';
- full.decoding='async';
- full.hidden=true;
- full.addEventListener('load',()=>{
-   if(!slot.contains(full))return;
-   const fallback=slot.querySelector('.oracle-card');
-   if(fallback)fallback.hidden=true;
-   full.hidden=false;
- });
- full.addEventListener('error',()=>full.remove());
- slot.appendChild(full);
- full.src='./assets/cards/'+String(card.id-16).padStart(2,'0')+'.webp';
+ const entry=preloadArtwork(card);
+ function showImage(){
+   if(!entry||entry.status!=='ready')return;
+   const image=entry.image;
+   image.className='oracle-full-image';
+   image.alt='Карта «'+card.title+'»: '+card.message+' '+card.wink+' Вопрос к себе: '+card.question;
+   slot.replaceChildren(image);
+   slot.removeAttribute('aria-busy');
+ }
+ function showFallback(){
+   // Only display the old readable HTML design when the image genuinely fails.
+   slot.innerHTML=cardHTML(card);
+   slot.removeAttribute('aria-busy');
+ }
+ if(entry.status==='ready'){
+   showImage();
+ }else if(entry.status==='error'){
+   showFallback();
+ }else{
+   // Keep the 2:3 card area reserved instead of showing a different card first.
+   const waiting=document.createElement('div');
+   waiting.className='oracle-card-loading';
+   waiting.setAttribute('role','status');
+   waiting.innerHTML='<span class="oracle-card-loading-star" aria-hidden="true">✦</span><span class="oracle-card-loading-label">Открываем твоё послание…</span>';
+   slot.replaceChildren(waiting);
+   slot.setAttribute('aria-busy','true');
+   entry.promise.then(()=>{
+     if(slot.contains(waiting))showImage();
+   }).catch(()=>{
+     if(slot.contains(waiting))showFallback();
+   });
+ }
+ // Start downloading the other selected cards before the visitor presses "next".
+ state.reading.forEach((c,i)=>{if(i!==state.index)preloadArtwork(c);});
  el('resultPager').hidden=len<=1;
  el('pagerDots').textContent=(state.index+1)+' / '+len;
  el('prevCard').disabled=state.index===0;
  el('nextCard').disabled=state.index===len-1;
  el('saveCard').textContent=(saved.has(card.id)?'♥ Сохранено':'♡ Сохранить');
  el('saveCard').classList.toggle('saved',saved.has(card.id));
- // Keep the result screen in place while changing cards. No full-page scrolling.
 }
 function turnCard(delta){
  const index=state.index+delta;
