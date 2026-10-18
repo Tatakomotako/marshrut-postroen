@@ -199,6 +199,32 @@ function preloadArtwork(card){
  image.src=artworkUrl(card);
  return entry;
 }
+function openCardZoom(src,alt){
+ const old=document.getElementById('cardZoom');
+ if(old)old.remove();
+ const shade=document.createElement('div');
+ shade.id='cardZoom';
+ shade.className='card-zoom-backdrop';
+ shade.setAttribute('role','dialog');
+ shade.setAttribute('aria-modal','true');
+ shade.setAttribute('aria-label','Карта крупным планом');
+ const enlarged=document.createElement('img');
+ enlarged.src=src;
+ enlarged.alt=alt;
+ const closeButton=document.createElement('button');
+ closeButton.type='button';
+ closeButton.className='card-zoom-close';
+ closeButton.setAttribute('aria-label','Закрыть увеличенную карту');
+ closeButton.textContent='×';
+ shade.append(enlarged,closeButton);
+ function close(){shade.remove();document.removeEventListener('keydown',onKey,true);}
+ function onKey(e){if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();}}
+ shade.addEventListener('click',e=>{if(e.target===shade||e.target===closeButton)close();});
+ closeButton.addEventListener('click',close);
+ document.addEventListener('keydown',onKey,true);
+ document.body.appendChild(shade);
+ closeButton.focus();
+}
 function renderResult(){
  const card=state.reading[state.index];if(!card)return;
  const len=state.reading.length;
@@ -209,6 +235,12 @@ function renderResult(){
    if(!entry||entry.status!=='ready')return;
    const image=entry.image;
    image.className='oracle-full-image';
+   image.tabIndex=0;
+   image.setAttribute('role','button');
+   image.setAttribute('title','Нажми, чтобы рассмотреть карту крупнее');
+   image.setAttribute('aria-label','Увеличить карту «'+card.title+'»');
+   image.onclick=()=>openCardZoom(image.src,'Карта «'+card.title+'»: '+card.message+' '+card.wink+' Вопрос к себе: '+card.question);
+   image.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();image.click();}};
    image.alt='Карта «'+card.title+'»: '+card.message+' '+card.wink+' Вопрос к себе: '+card.question;
    slot.replaceChildren(image);
    slot.removeAttribute('aria-busy');
